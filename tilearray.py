@@ -7,6 +7,7 @@ from math import pi, floor
 import urllib2
 import cStringIO
 from PIL import Image
+import util
 
 MAXLAT = math.atan(math.sinh(math.pi)) * 180.0 / math.pi
 
@@ -21,7 +22,28 @@ class TileArray(object):
         return
 
     def __getitem__(self, key):
-        pass
+        if isinstance(key, tuple):
+            assert(len(key) == 2)
+            assert(isinstance(key[0], slice))
+            assert(isinstance(key[1], slice))
+
+            nw = self._getxy((key[0].start, key[1].stop), self.default_zoom)
+            se = self._getxy((key[0].stop, key[1].start), self.default_zoom)
+            tiletuples = [(x,y) for x in xrange(nw[0], se[0]+1)
+                                for y in xrange(nw[1], se[1]+1)]
+            if len(tiletuples) > 9:
+                raise Exception("too many tiles ({0}) - choose a lower zoom "
+                                "level".format(len(tiletuples)))
+            tiles = []
+            bigxy = []
+            for tt in tiletuples:
+                tile = self.download_tile(self.construct_addr(self.default_zoom, tt[0], tt[1]))
+                tiles.append(tile)
+                bigxy.append((tt[0] - nw[0], tt[1] - nw[1]))
+            bigtile = util.composetiles(tiles, bigxy)
+            return bigtile
+        else:
+            raise NotImplementedError()
 
     def _getxy(self, coords, zoom):
         n = 2**zoom

@@ -37,7 +37,8 @@ class TileArray(object):
             tiles = []
             bigxy = []
             for tt in tiletuples:
-                tile = self.download_tile(self.construct_addr(self.default_zoom, tt[0], tt[1]))
+                addr = self.construct_addr(self.default_zoom, tt[0], tt[1])
+                tile = self.download_tile(addr)
                 tiles.append(tile)
                 bigxy.append((tt[0] - nw[0], tt[1] - nw[1]))
             bigtile = util.composetiles(tiles, bigxy)
@@ -53,6 +54,16 @@ class TileArray(object):
         x = int(floor((1 + (lon / pi)) / 2 * n))
         y = int(floor((1 - (yp / pi)) / 2 * n))
         return x, y
+
+    def get_bbox(X, Y, zoom=None):
+        """ Get the coordinate bounding box spanned by a range given by tuples
+        as (lonmin, lonmax), (latmin, latmax). """
+        if zoom is None:
+            zoom = self.default_zoom
+        nwextents = self.get_extents((key[0].start, key[1].stop), zoom)
+        seextents = self.get_extents((key[0].stop, key[1].start), zoom)
+        bbox = (nwextents[0], seextents[1], seextents[2], nwextents[3])
+        return bbox
 
     def get_extents(self, coords, zoom):
         """ Return the spatial extents of a tile containing *coordinates* at

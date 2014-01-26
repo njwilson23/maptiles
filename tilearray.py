@@ -22,10 +22,11 @@ class TileArray(object):
         return
 
     def __getitem__(self, key):
-        if isinstance(key, tuple):
+        if not isinstance(key, tuple):
+            raise NotImplementedError()
+
+        if isinstance(key[0], slice) and isinstance(key[1], slice):
             assert(len(key) == 2)
-            assert(isinstance(key[0], slice))
-            assert(isinstance(key[1], slice))
 
             nw = self._getxy((key[0].start, key[1].stop), self.default_zoom)
             se = self._getxy((key[0].stop, key[1].start), self.default_zoom)
@@ -43,8 +44,12 @@ class TileArray(object):
                 bigxy.append((tt[0] - nw[0], tt[1] - nw[1]))
             bigtile = util.composetiles(tiles, bigxy)
             return bigtile
+
         else:
-            raise NotImplementedError()
+            tiletuple = self.get_tile_addr((key[0], key[1]), self.default_zoom)
+            addr = self.construct_addr(*tiletuple)
+            tile = self.download_tile(addr)
+            return tile
 
     def _getxy(self, coords, zoom):
         n = 2**zoom

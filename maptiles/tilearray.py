@@ -60,26 +60,28 @@ class TileArray(object):
         y = int(floor((1 - (yp / pi)) / 2 * n))
         return x, y
 
-    def get_bbox(X, Y, zoom=None):
+    def get_bbox(self, X, Y, zoom=None):
         """ Get the coordinate bounding box spanned by a range given by tuples
         as (lonmin, lonmax), (latmin, latmax). """
         if zoom is None:
             zoom = self.default_zoom
-        nwextents = self.get_extents((key[0].start, key[1].stop), zoom)
-        seextents = self.get_extents((key[0].stop, key[1].start), zoom)
+        nwextents = self.get_extents((X[0], Y[1]), zoom)
+        seextents = self.get_extents((X[1], Y[0]), zoom)
         bbox = (nwextents[0], seextents[1], seextents[2], nwextents[3])
         return bbox
 
-    def get_extents(self, coords, zoom):
+    def get_extents(self, coords, zoom=None):
         """ Return the spatial extents of a tile containing *coordinates* at
         zoom level *zoom*.
         """
+        if zoom is None:
+            zoom = self.default_zoom
         x, y = self._getxy(coords, zoom)
         n = 2**zoom
         minx = 360.0 / n * x - 180
         maxx = 360.0 / n * (x+1) - 180
-        miny = pi * (1 - 2.0*y/n)
-        maxy = pi * (1 - 2.0*(y+1)/n)
+        miny = pi * (1 - 2.0*(y+1)/n)
+        maxy = pi * (1 - 2.0*y/n)
         iproj = lambda yp: math.atan(math.sinh(yp)) * 180 / pi
         return (minx, maxx, iproj(miny), iproj(maxy))
 

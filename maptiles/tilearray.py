@@ -116,3 +116,19 @@ class TileArray(object):
         tile = self.download_tile(addr)
         return tile
 
+class TileSet(object):
+    """ Set of tiles. """
+
+    def __init__(self, tiles, bboxes):
+        if len(tiles) != len(bboxes):
+            raise ValueError("there must be the same number of tiles and bounding boxes")
+        self.tiles = tiles
+        self.bboxes = bboxes
+
+    def calculate_bbox(self):
+        """ Return the full bounding box for TileSet. """
+        xmin = min(a[0] for a in self.bboxes)
+        xmax = max(a[1] for a in self.bboxes)
+        ymin = min(a[2] for a in self.bboxes)
+        ymax = max(a[3] for a in self.bboxes)
+
